@@ -26,9 +26,13 @@ const USERS: User[] = [
 ];
 
 export const Interview1 = () => {
-  const [search, setSearch] = useState<string>("");
-  const [refreshCount, setRefreshCount] = useState<number>(0);
+  const [search, setSearch] = useState("");
+  const [refreshCount, setRefreshCount] = useState(0);
 
+  const [loading, setLoading] = useState(false);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>(USERS);
+
+  /* 🔹 Effect 1: auto refresh */
   useEffect(() => {
     const intervalId = setInterval(() => {
       setRefreshCount((prev) => prev + 1);
@@ -37,13 +41,28 @@ export const Interview1 = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const filteredUsers = USERS.filter((user) =>
-    user.name.toLowerCase().includes(search.toLowerCase())
-  );
+  /* 🔹 Effect 2: simulate search request */
+  useEffect(() => {
+    setLoading(true);
+
+    const timeoutId = setTimeout(() => {
+      const results = USERS.filter((user) =>
+        user.name.toLowerCase().includes(search.toLowerCase())
+      );
+
+      setFilteredUsers(results);
+      setLoading(false);
+    }, 400);
+
+    // 🔥 Important: cleanup to avoid race conditions
+    return () => clearTimeout(timeoutId);
+  }, [search]);
 
   const handleReset = () => {
     setSearch("");
     setRefreshCount(0);
+    setFilteredUsers(USERS);
+    setLoading(false);
   };
 
   // 🔹 Derived UI states
@@ -62,7 +81,7 @@ export const Interview1 = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className={`search-input ${
-            search && !hasResults
+            search && !hasResults && !loading
               ? "input-error"
               : search && hasResults
               ? "input-success"
@@ -78,7 +97,9 @@ export const Interview1 = () => {
       </p>
 
       <ul className="user-list">
-        {hasResults ? (
+        {loading ? (
+          <li className="loading-state">Loading...</li>
+        ) : hasResults ? (
           filteredUsers.map((user) => {
             const startsWithSearch =
               search &&

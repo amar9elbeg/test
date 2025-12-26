@@ -149,3 +149,8 @@ hr {
   border-radius: 3px;
   font-weight: 600;
 }
+
+.search-input:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
